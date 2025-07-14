@@ -61,6 +61,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				flow: {
+					'primary': 'hsl(var(--flow-primary))',
+					'secondary': 'hsl(var(--flow-secondary))',
+					'accent': 'hsl(var(--flow-accent))',
+					'warning': 'hsl(var(--flow-warning))',
+					'success': 'hsl(var(--flow-success))',
+					'node-bg': 'hsl(var(--flow-node-bg))',
+					'node-border': 'hsl(var(--flow-node-border))',
+					'canvas': 'hsl(var(--flow-canvas))',
+					'grid': 'hsl(var(--flow-grid))'
 				}
 			},
 			borderRadius: {
