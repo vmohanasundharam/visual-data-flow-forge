@@ -1,14 +1,21 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Code, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { JSNodeConfigModal } from '@/components/JSNodeConfigModal';
 
 export const JavaScriptNode = memo(({ data, selected }: NodeProps) => {
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+
   const handleConfigure = () => {
-    // TODO: Open configuration modal
-    console.log('Configure JavaScript block');
+    setIsConfigOpen(true);
+  };
+
+  const handleSaveConfig = (config: any) => {
+    // Update node data with new configuration
+    data.config = config;
   };
 
   return (
@@ -60,6 +67,13 @@ export const JavaScriptNode = memo(({ data, selected }: NodeProps) => {
         type="source"
         position={Position.Bottom}
         className="w-3 h-3 bg-flow-secondary border-2 border-background"
+      />
+
+      <JSNodeConfigModal
+        open={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        onSave={handleSaveConfig}
+        initialConfig={data.config}
       />
     </Card>
   );

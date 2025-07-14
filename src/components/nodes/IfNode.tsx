@@ -1,14 +1,21 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GitBranch, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { IfNodeConfigModal } from '@/components/IfNodeConfigModal';
 
 export const IfNode = memo(({ data, selected }: NodeProps) => {
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+
   const handleConfigure = () => {
-    // TODO: Open configuration modal
-    console.log('Configure If block');
+    setIsConfigOpen(true);
+  };
+
+  const handleSaveConfig = (config: any) => {
+    // Update node data with new configuration
+    data.config = config;
   };
 
   return (
@@ -76,6 +83,13 @@ export const IfNode = memo(({ data, selected }: NodeProps) => {
         <span>True</span>
         <span>False</span>
       </div>
+
+      <IfNodeConfigModal
+        open={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        onSave={handleSaveConfig}
+        initialConfig={data.config}
+      />
     </Card>
   );
 });
