@@ -56,6 +56,9 @@ export function JSFunctionsModal({ isOpen, onClose }: JSFunctionsModalProps) {
   const saveFunctions = (updatedFunctions: JSFunction[]) => {
     localStorage.setItem('js_functions', JSON.stringify(updatedFunctions));
     setFunctions(updatedFunctions);
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new Event('js_functions_updated'));
   };
 
   const handleCreateFunction = () => {

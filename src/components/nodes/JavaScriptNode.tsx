@@ -96,6 +96,7 @@ export const JavaScriptNode = memo(({ data, selected }: NodeProps) => {
         tags={(data as any).tags || []}
         fields={(data as any).fields || []}
         variables={(data as any).globalVariables || []}
+        functions={(data as any).functions || []}
       />
     </Card>
   );

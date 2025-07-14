@@ -24,6 +24,7 @@ import { StartNode } from '@/components/nodes/StartNode';
 import { EndNode } from '@/components/nodes/EndNode';
 import { useToast } from '@/hooks/use-toast';
 import { useTagsFields } from '@/hooks/useTagsFields';
+import { useJSFunctions } from '@/hooks/useJSFunctions';
 
 const nodeTypes = {
   if: IfNode,
@@ -57,6 +58,9 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
   
   // Load tags and fields from the data source
   const { tags, fields } = useTagsFields(flow.dataSourceId);
+  
+  // Load JS functions from localStorage
+  const { functions } = useJSFunctions();
 
   useEffect(() => {
     setHasChanges(true);
@@ -181,6 +185,7 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
               globalVariables: flow.globalVariables,
               tags: tags, // Dynamic tags from data source
               fields: fields, // Dynamic fields from data source
+              functions: functions, // Dynamic functions from localStorage
             }
           }))}
           edges={edges}

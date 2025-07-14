@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Tag, Field, GlobalVariable } from '@/types/flow';
+import { Tag, Field, GlobalVariable, JSFunction } from '@/types/flow';
 
 interface ArgumentMapping {
   argumentName: string;
@@ -21,21 +21,22 @@ interface JSNodeConfigModalProps {
   tags: Tag[];
   fields: Field[];
   variables: GlobalVariable[];
+  functions: JSFunction[];
 }
 
-export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, fields, variables }: JSNodeConfigModalProps) {
+export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, fields, variables, functions }: JSNodeConfigModalProps) {
   const [selectedFunction, setSelectedFunction] = useState(initialConfig?.functionName || '');
   const [argumentMappings, setArgumentMappings] = useState<ArgumentMapping[]>(
     initialConfig?.argumentMappings || []
   );
   const [returnVariable, setReturnVariable] = useState(initialConfig?.returnVariable || '');
 
-  // Mock JS functions for demo - these would come from the JSFunctionsModal data
-  const availableFunctions = [
-    { name: 'calculateSum', args: [{ name: 'number1', type: 'number' }, { name: 'number2', type: 'number' }], returnType: 'number' },
-    { name: 'formatString', args: [{ name: 'text', type: 'string' }, { name: 'prefix', type: 'string' }], returnType: 'string' },
-    { name: 'filterList', args: [{ name: 'items', type: 'list' }, { name: 'criteria', type: 'string' }], returnType: 'list' },
-  ];
+  // Use actual functions from the functions modal instead of mock data
+  const availableFunctions = functions.map(func => ({
+    name: func.name,
+    args: func.arguments.map(arg => ({ name: arg.name, type: arg.type })),
+    returnType: func.returnType
+  }));
 
   const selectedFunctionData = availableFunctions.find(f => f.name === selectedFunction);
 
@@ -124,11 +125,17 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                 <SelectValue placeholder="Choose a JavaScript function" />
               </SelectTrigger>
               <SelectContent className="bg-background border z-50">
-                {availableFunctions.map(func => (
-                  <SelectItem key={func.name} value={func.name}>
-                    {func.name} ({func.args.length} args → {func.returnType})
-                  </SelectItem>
-                ))}
+                {availableFunctions.length === 0 ? (
+                  <div className="px-2 py-1 text-sm text-muted-foreground">
+                    No functions available. Create functions first.
+                  </div>
+                ) : (
+                  availableFunctions.map(func => (
+                    <SelectItem key={func.name} value={func.name}>
+                      {func.name} ({func.args.length} args → {func.returnType})
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
