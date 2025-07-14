@@ -5,9 +5,28 @@ import { Badge } from '@/components/ui/badge';
 import { Code, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { JSNodeConfigModal } from '@/components/JSNodeConfigModal';
+import { Tag, Field, GlobalVariable } from '@/types/flow';
 
 export const JavaScriptNode = memo(({ data, selected }: NodeProps) => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  
+  // Mock data - these should come from props or context in a real implementation
+  const mockTags: Tag[] = [
+    { id: '1', name: 'temperature', value: 23.5, type: 'number' },
+    { id: '2', name: 'humidity', value: 65.2, type: 'number' },
+    { id: '3', name: 'status', value: 'active', type: 'string' },
+  ];
+  
+  const mockFields: Field[] = [
+    { id: '1', name: 'device_id', value: 'SENSOR_001', type: 'string' },
+    { id: '2', name: 'max_temp', value: 35, type: 'number' },
+  ];
+  
+  const mockVariables: GlobalVariable[] = [
+    { id: '1', name: 'result_sum', value: 0, type: 'number' },
+    { id: '2', name: 'formatted_text', value: '', type: 'string' },
+    { id: '3', name: 'filtered_items', value: [], type: 'list' },
+  ];
 
   const handleConfigure = () => {
     setIsConfigOpen(true);
@@ -74,6 +93,9 @@ export const JavaScriptNode = memo(({ data, selected }: NodeProps) => {
         onClose={() => setIsConfigOpen(false)}
         onSave={handleSaveConfig}
         initialConfig={data.config}
+        tags={mockTags}
+        fields={mockFields}
+        variables={mockVariables}
       />
     </Card>
   );
