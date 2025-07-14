@@ -28,15 +28,66 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig }: IfNo
   );
   const [grouping, setGrouping] = useState(initialConfig?.grouping || '');
 
-  const operators = [
+  // Mock data for tags, fields, and variables
+  const mockTags = [
+    { id: 'tag1', name: 'Temperature', type: 'number' },
+    { id: 'tag2', name: 'Status', type: 'string' },
+    { id: 'tag3', name: 'Pressure', type: 'number' },
+  ];
+
+  const mockFields = [
+    { id: 'field1', name: 'Device Name', type: 'string' },
+    { id: 'field2', name: 'Location', type: 'string' },
+    { id: 'field3', name: 'Battery Level', type: 'number' },
+  ];
+
+  const mockVariables = [
+    { id: 'var1', name: 'Counter', type: 'number' },
+    { id: 'var2', name: 'Message', type: 'string' },
+  ];
+
+  const stringOperators = [
     { value: '=', label: 'equals' },
     { value: '!=', label: 'not equals' },
-    { value: '<', label: 'less than' },
-    { value: '>', label: 'greater than' },
     { value: 'contains', label: 'contains' },
     { value: 'is', label: 'is' },
     { value: "isn't", label: "isn't" },
   ];
+
+  const numberOperators = [
+    { value: '=', label: 'equals' },
+    { value: '!=', label: 'not equals' },
+    { value: '<', label: 'less than' },
+    { value: '>', label: 'greater than' },
+    { value: '<=', label: 'less than or equal' },
+    { value: '>=', label: 'greater than or equal' },
+    { value: 'empty', label: 'empty' },
+    { value: 'not empty', label: 'not empty' },
+  ];
+
+  const getSourceOptions = (sourceType: string) => {
+    switch (sourceType) {
+      case 'tag':
+        return mockTags.filter(item => ['number', 'string'].includes(item.type));
+      case 'field':
+        return mockFields.filter(item => ['number', 'string'].includes(item.type));
+      case 'variable':
+        return mockVariables.filter(item => ['number', 'string'].includes(item.type));
+      default:
+        return [];
+    }
+  };
+
+  const getSelectedSourceType = (condition: Condition) => {
+    const sources = getSourceOptions(condition.sourceType);
+    const selectedSource = sources.find(s => s.name === condition.source);
+    return selectedSource?.type || 'string';
+  };
+
+  const getOperators = (condition: Condition) => {
+    const sourceType = getSelectedSourceType(condition);
+    return sourceType === 'number' ? numberOperators : stringOperators;
+  };
 
   const addCondition = () => {
     const newCondition: Condition = {
@@ -56,9 +107,18 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig }: IfNo
   };
 
   const updateCondition = (id: string, field: keyof Condition, value: string) => {
-    setConditions(conditions.map(c => 
-      c.id === id ? { ...c, [field]: value } : c
-    ));
+    setConditions(conditions.map(c => {
+      if (c.id === id) {
+        const updatedCondition = { ...c, [field]: value };
+        // Reset source when sourceType changes
+        if (field === 'sourceType') {
+          updatedCondition.source = '';
+          updatedCondition.operator = '=';
+        }
+        return updatedCondition;
+      }
+      return c;
+    }));
   };
 
   const handleSave = () => {
@@ -98,12 +158,21 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig }: IfNo
                     </SelectContent>
                   </Select>
 
-                  <Input
-                    placeholder="Source name"
-                    value={condition.source}
-                    onChange={(e) => updateCondition(condition.id, 'source', e.target.value)}
-                    className="flex-1"
-                  />
+                  <Select 
+                    value={condition.source} 
+                    onValueChange={(value) => updateCondition(condition.id, 'source', value)}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getSourceOptions(condition.sourceType).map(option => (
+                        <SelectItem key={option.id} value={option.name}>
+                          {option.name} ({option.type})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
                   <Select 
                     value={condition.operator} 
@@ -113,7 +182,7 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig }: IfNo
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {operators.map(op => (
+                      {getOperators(condition).map(op => (
                         <SelectItem key={op.value} value={op.value}>{op.label}</SelectItem>
                       ))}
                     </SelectContent>
