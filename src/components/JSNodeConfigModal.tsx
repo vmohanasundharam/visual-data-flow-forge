@@ -151,11 +151,16 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                         </Badge>
                       </div>
                       
-                      <Select 
+                        <Select 
                         value={mapping.sourceType} 
                         onValueChange={(value) => {
-                          updateArgumentMapping(index, 'sourceType', value);
-                          updateArgumentMapping(index, 'source', ''); // Reset source when type changes
+                          const newMappings = [...argumentMappings];
+                          newMappings[index] = { 
+                            ...newMappings[index], 
+                            sourceType: value as 'field' | 'tag' | 'variable',
+                            source: '' // Reset source when type changes
+                          };
+                          setArgumentMappings(newMappings);
                         }}
                       >
                         <SelectTrigger className="w-24">

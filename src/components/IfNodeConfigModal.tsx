@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Tag, Field, GlobalVariable } from '@/types/flow';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,31 +21,17 @@ interface IfNodeConfigModalProps {
   onClose: () => void;
   onSave: (config: any) => void;
   initialConfig?: any;
+  tags: Tag[];
+  fields: Field[];
+  variables: GlobalVariable[];
 }
 
-export function IfNodeConfigModal({ open, onClose, onSave, initialConfig }: IfNodeConfigModalProps) {
+export function IfNodeConfigModal({ open, onClose, onSave, initialConfig, tags, fields, variables }: IfNodeConfigModalProps) {
   const [conditions, setConditions] = useState<Condition[]>(
     initialConfig?.conditions || [{ id: '1', source: '', operator: '=', value: '', sourceType: 'field' }]
   );
   const [grouping, setGrouping] = useState(initialConfig?.grouping || '');
 
-  // Mock data for tags, fields, and variables
-  const mockTags = [
-    { id: 'tag1', name: 'Temperature', type: 'number' },
-    { id: 'tag2', name: 'Status', type: 'string' },
-    { id: 'tag3', name: 'Pressure', type: 'number' },
-  ];
-
-  const mockFields = [
-    { id: 'field1', name: 'Device Name', type: 'string' },
-    { id: 'field2', name: 'Location', type: 'string' },
-    { id: 'field3', name: 'Battery Level', type: 'number' },
-  ];
-
-  const mockVariables = [
-    { id: 'var1', name: 'Counter', type: 'number' },
-    { id: 'var2', name: 'Message', type: 'string' },
-  ];
 
   const stringOperators = [
     { value: '=', label: 'equals' },
@@ -68,11 +55,11 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig }: IfNo
   const getSourceOptions = (sourceType: string) => {
     switch (sourceType) {
       case 'tag':
-        return mockTags.filter(item => ['number', 'string'].includes(item.type));
+        return tags.filter(item => ['number', 'string'].includes(item.type));
       case 'field':
-        return mockFields.filter(item => ['number', 'string'].includes(item.type));
+        return fields.filter(item => ['number', 'string'].includes(item.type));
       case 'variable':
-        return mockVariables.filter(item => ['number', 'string'].includes(item.type));
+        return variables.filter(item => ['number', 'string'].includes(item.type));
       default:
         return [];
     }
