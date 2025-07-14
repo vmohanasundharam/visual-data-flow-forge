@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -38,19 +38,25 @@ export function CacheNodeConfigModal({
   tags,
   fields,
 }: CacheNodeConfigModalProps) {
-  const [config, setConfig] = useState<CacheBlockConfig>({
-    operation: 'get',
-    key: {
-      sourceType: 'field',
-    },
-    ...(initialConfig || {}),
-  });
-
-  useEffect(() => {
+  const [config, setConfig] = useState<CacheBlockConfig>(() => {
+    const defaultConfig: CacheBlockConfig = {
+      operation: 'get',
+      key: {
+        sourceType: 'field',
+      },
+    };
+    
     if (initialConfig) {
-      setConfig(initialConfig);
+      return {
+        ...defaultConfig,
+        ...initialConfig,
+        key: initialConfig.key || defaultConfig.key,
+        value: initialConfig.value || undefined,
+      };
     }
-  }, [initialConfig]);
+    
+    return defaultConfig;
+  });
 
   const handleSave = () => {
     onSave(config);
@@ -58,12 +64,14 @@ export function CacheNodeConfigModal({
   };
 
   const renderSourceSelector = (
-    value: { sourceType: 'field' | 'tag' | 'variable' | 'custom'; source?: string; customValue?: string },
+    value: { sourceType: 'field' | 'tag' | 'variable' | 'custom'; source?: string; customValue?: string } | undefined,
     onChange: (newValue: { sourceType: 'field' | 'tag' | 'variable' | 'custom'; source?: string; customValue?: string }) => void,
     label: string
   ) => {
+    // Ensure value has a default if undefined
+    const safeValue = value || { sourceType: 'field' as const };
     const getSourceOptions = () => {
-      switch (value.sourceType) {
+      switch (safeValue.sourceType) {
         case 'field':
           return fields.map(field => ({ id: field.id, name: field.name }));
         case 'tag':
@@ -80,7 +88,7 @@ export function CacheNodeConfigModal({
         <Label>{label}</Label>
         <div className="space-y-2">
           <Select
-            value={value.sourceType}
+            value={safeValue.sourceType}
             onValueChange={(sourceType: 'field' | 'tag' | 'variable' | 'custom') =>
               onChange({ sourceType, source: undefined, customValue: undefined })
             }
@@ -96,19 +104,19 @@ export function CacheNodeConfigModal({
             </SelectContent>
           </Select>
 
-          {value.sourceType === 'custom' ? (
+          {safeValue.sourceType === 'custom' ? (
             <Input
               placeholder="Enter custom value"
-              value={value.customValue || ''}
-              onChange={(e) => onChange({ ...value, customValue: e.target.value })}
+              value={safeValue.customValue || ''}
+              onChange={(e) => onChange({ ...safeValue, customValue: e.target.value })}
             />
           ) : (
             <Select
-              value={value.source || ''}
-              onValueChange={(source) => onChange({ ...value, source })}
+              value={safeValue.source || ''}
+              onValueChange={(source) => onChange({ ...safeValue, source })}
             >
               <SelectTrigger>
-                <SelectValue placeholder={`Select ${value.sourceType}`} />
+                <SelectValue placeholder={`Select ${safeValue.sourceType}`} />
               </SelectTrigger>
               <SelectContent>
                 {getSourceOptions().map((option) => (
