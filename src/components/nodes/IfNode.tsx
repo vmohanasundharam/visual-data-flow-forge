@@ -16,7 +16,9 @@ export const IfNode = memo(({ data, selected }: NodeProps) => {
 
   const handleSaveConfig = (config: any) => {
     // Update node data with new configuration
-    data.config = config;
+    if (data.onUpdateNode && typeof data.onUpdateNode === 'function') {
+      data.onUpdateNode(data.nodeId, { config });
+    }
   };
 
   return (

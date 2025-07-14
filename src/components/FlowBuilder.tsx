@@ -106,6 +106,16 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
     setNodes((nds) => [...nds, newNode]);
   };
 
+  const handleUpdateNode = (nodeId: string, updates: any) => {
+    setNodes((nds) => 
+      nds.map((node) => 
+        node.id === nodeId 
+          ? { ...node, data: { ...node.data, ...updates } }
+          : node
+      )
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen bg-flow-canvas">
       {/* Toolbar */}
@@ -182,6 +192,8 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
             ...node,
             data: {
               ...node.data,
+              nodeId: node.id,
+              onUpdateNode: handleUpdateNode,
               globalVariables: flow.globalVariables,
               tags: tags, // Dynamic tags from data source
               fields: fields, // Dynamic fields from data source
