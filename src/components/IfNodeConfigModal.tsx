@@ -153,11 +153,17 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                       <SelectValue placeholder="Select source" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border z-50">
-                      {getSourceOptions(condition.sourceType).map(option => (
-                        <SelectItem key={option.id} value={option.name}>
-                          {option.name} ({option.type})
-                        </SelectItem>
-                      ))}
+                      {getSourceOptions(condition.sourceType).length === 0 ? (
+                        <div className="px-2 py-1 text-sm text-muted-foreground">
+                          No {condition.sourceType}s available
+                        </div>
+                      ) : (
+                        getSourceOptions(condition.sourceType).map(option => (
+                          <SelectItem key={option.id} value={option.name}>
+                            {option.name} ({option.type})
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
 

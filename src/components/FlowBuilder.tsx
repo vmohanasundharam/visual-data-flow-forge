@@ -175,8 +175,18 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
             data: {
               ...node.data,
               globalVariables: flow.globalVariables,
-              tags: [], // TODO: Get from data source
-              fields: [], // TODO: Get from data source
+              tags: [ // Mock tags data for testing
+                { id: '1', name: 'temperature', value: 23.5, type: 'number' },
+                { id: '2', name: 'humidity', value: 65.2, type: 'number' },
+                { id: '3', name: 'status', value: 'active', type: 'string' },
+                { id: '4', name: 'device_name', value: 'Sensor01', type: 'string' },
+              ],
+              fields: [ // Mock fields data for testing
+                { id: '1', name: 'device_id', value: 'SENSOR_001', type: 'string' },
+                { id: '2', name: 'max_temp', value: 35, type: 'number' },
+                { id: '3', name: 'location', value: 'Room A', type: 'string' },
+                { id: '4', name: 'threshold', value: 50, type: 'number' },
+              ],
             }
           }))}
           edges={edges}
