@@ -90,20 +90,9 @@ export const IfNode = memo(({ data, selected }: NodeProps) => {
         onClose={() => setIsConfigOpen(false)}
         onSave={handleSaveConfig}
         initialConfig={data.config}
-        tags={[
-          { id: '1', name: 'temperature', value: 23.5, type: 'number' },
-          { id: '2', name: 'humidity', value: 65.2, type: 'number' },
-          { id: '3', name: 'status', value: 'active', type: 'string' },
-        ]}
-        fields={[
-          { id: '1', name: 'device_id', value: 'SENSOR_001', type: 'string' },
-          { id: '2', name: 'max_temp', value: 35, type: 'number' },
-        ]}
-        variables={[
-          { id: '1', name: 'result_sum', value: 0, type: 'number' },
-          { id: '2', name: 'formatted_text', value: '', type: 'string' },
-          { id: '3', name: 'filtered_items', value: [], type: 'list' },
-        ]}
+        tags={(data as any).tags || []}
+        fields={(data as any).fields || []}
+        variables={(data as any).globalVariables || []}
       />
     </Card>
   );

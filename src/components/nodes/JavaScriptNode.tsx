@@ -93,9 +93,9 @@ export const JavaScriptNode = memo(({ data, selected }: NodeProps) => {
         onClose={() => setIsConfigOpen(false)}
         onSave={handleSaveConfig}
         initialConfig={data.config}
-        tags={mockTags}
-        fields={mockFields}
-        variables={mockVariables}
+        tags={(data as any).tags || []}
+        fields={(data as any).fields || []}
+        variables={(data as any).globalVariables || []}
       />
     </Card>
   );

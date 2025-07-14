@@ -170,7 +170,15 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
       {/* Flow Canvas */}
       <div className="flex-1 relative">
         <ReactFlow
-          nodes={nodes}
+          nodes={nodes.map(node => ({
+            ...node,
+            data: {
+              ...node.data,
+              globalVariables: flow.globalVariables,
+              tags: [], // TODO: Get from data source
+              fields: [], // TODO: Get from data source
+            }
+          }))}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
