@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { JSFunction } from '@/types/flow';
+import { mockJSFunctions } from '@/data/mockData';
 
 export function useJSFunctions() {
   const [functions, setFunctions] = useState<JSFunction[]>([]);
@@ -13,11 +14,14 @@ export function useJSFunctions() {
       if (saved) {
         setFunctions(JSON.parse(saved));
       } else {
-        setFunctions([]);
+        // Initialize with mock data if no saved functions
+        localStorage.setItem('js_functions', JSON.stringify(mockJSFunctions));
+        setFunctions(mockJSFunctions);
       }
     } catch (error) {
       console.error('Failed to load JS functions:', error);
-      setFunctions([]);
+      // Fallback to mock data
+      setFunctions(mockJSFunctions);
     } finally {
       setLoading(false);
     }

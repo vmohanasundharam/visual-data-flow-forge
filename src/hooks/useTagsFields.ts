@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tag, Field } from '@/types/flow';
 import { useToast } from '@/hooks/use-toast';
+import { mockDataSources } from '@/data/mockData';
 
 export function useTagsFields(dataSourceId?: string) {
   const { toast } = useToast();
@@ -21,34 +22,8 @@ export function useTagsFields(dataSourceId?: string) {
       // const response = await fetch(`/api/data-sources`);
       // const data = await response.json();
       
-      // Mock data matching server format
-      const mockServerResponse = {
-        "data_sources": [
-          {
-            "id": "1234",
-            "name": "Device1",
-            "tags": [
-              { "id": "1234", "name": "device_name", "type": "string" as const, "value": "Aaaa" },
-              { "id": "1235", "name": "temperature", "type": "number" as const, "value": 23.5 },
-              { "id": "1236", "name": "humidity", "type": "number" as const, "value": 65.2 },
-              { "id": "1237", "name": "status", "type": "string" as const, "value": "active" },
-              { "id": "1238", "name": "pressure", "type": "number" as const, "value": 1013.25 },
-              { "id": "1239", "name": "location_tag", "type": "string" as const, "value": "Room-A" }
-            ],
-            "fields": [
-              { "id": "1234", "name": "current_shift", "type": "string" as const, "value": "Shift 1" },
-              { "id": "1235", "name": "device_id", "type": "string" as const, "value": "SENSOR_001" },
-              { "id": "1236", "name": "location", "type": "string" as const, "value": "Building A - Floor 1" },
-              { "id": "1237", "name": "max_temp", "type": "number" as const, "value": 35 },
-              { "id": "1238", "name": "threshold", "type": "number" as const, "value": 50 },
-              { "id": "1239", "name": "maintenance_interval", "type": "number" as const, "value": 30 }
-            ]
-          }
-        ]
-      };
-      
-      // Find the data source by ID
-      const dataSource = mockServerResponse.data_sources.find(ds => ds.id === dataSourceId);
+      // Find the data source by ID using mock data
+      const dataSource = mockDataSources.data_sources.find(ds => ds.id === dataSourceId);
       
       if (dataSource) {
         setTags(dataSource.tags);

@@ -28,11 +28,13 @@ const Index = () => {
 
   const loadDataSources = async () => {
     try {
-      // Mock data matching server format
+      // Use comprehensive mock data for testing
       const mockDataSources: DataSource[] = [
-        { id: '1234', name: 'Device1', description: 'IoT temperature monitoring' },
-        { id: '1235', name: 'Pressure Gauges', description: 'Industrial pressure monitoring' },
-        { id: '1236', name: 'Flow Meters', description: 'Water flow measurement' }
+        { id: 'ds001', name: 'Temperature Monitoring System', description: 'Industrial temperature sensors across factory floor' },
+        { id: 'ds002', name: 'Pressure Monitoring Network', description: 'Hydraulic pressure sensors for industrial equipment' },
+        { id: 'ds003', name: 'Flow Rate Sensors', description: 'Water and chemical flow measurement systems' },
+        { id: 'ds004', name: 'Environmental Sensors', description: 'Air quality and environmental monitoring system' },
+        { id: 'ds005', name: 'Power Consumption Monitors', description: 'Electrical power usage and energy monitoring' }
       ];
       setDataSources(mockDataSources);
     } catch (error) {
