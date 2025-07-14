@@ -138,7 +138,7 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                     <SelectTrigger className="w-24">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border z-50">
                       <SelectItem value="field">Field</SelectItem>
                       <SelectItem value="tag">Tag</SelectItem>
                       <SelectItem value="variable">Variable</SelectItem>
@@ -152,7 +152,7 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Select source" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border z-50">
                       {getSourceOptions(condition.sourceType).map(option => (
                         <SelectItem key={option.id} value={option.name}>
                           {option.name} ({option.type})
@@ -168,7 +168,7 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border z-50">
                       {getOperators(condition).map(op => (
                         <SelectItem key={op.value} value={op.value}>{op.label}</SelectItem>
                       ))}

@@ -123,7 +123,7 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Choose a JavaScript function" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background border z-50">
                 {availableFunctions.map(func => (
                   <SelectItem key={func.name} value={func.name}>
                     {func.name} ({func.args.length} args → {func.returnType})
@@ -166,7 +166,7 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                         <SelectTrigger className="w-24">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background border z-50">
                           <SelectItem value="field">Field</SelectItem>
                           <SelectItem value="tag">Tag</SelectItem>
                           <SelectItem value="variable">Variable</SelectItem>
@@ -180,11 +180,11 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                         <SelectTrigger className="flex-1">
                           <SelectValue placeholder={`Select ${mapping.sourceType}`} />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background border z-50">
                           {filteredSources.length === 0 ? (
-                            <SelectItem value="" disabled>
+                            <div className="px-2 py-1 text-sm text-muted-foreground">
                               No matching {mapping.sourceType}s found
-                            </SelectItem>
+                            </div>
                           ) : (
                             filteredSources.map((source: any) => (
                               <SelectItem key={source.id} value={source.name}>
@@ -211,11 +211,11 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select global variable" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border z-50">
                         {getReturnVariableOptions().length === 0 ? (
-                          <SelectItem value="" disabled>
+                          <div className="px-2 py-1 text-sm text-muted-foreground">
                             No matching variables found
-                          </SelectItem>
+                          </div>
                         ) : (
                           getReturnVariableOptions().map((variable) => (
                             <SelectItem key={variable.id} value={variable.name}>
