@@ -23,6 +23,7 @@ import { JavaScriptNode } from '@/components/nodes/JavaScriptNode';
 import { StartNode } from '@/components/nodes/StartNode';
 import { EndNode } from '@/components/nodes/EndNode';
 import { useToast } from '@/hooks/use-toast';
+import { useTagsFields } from '@/hooks/useTagsFields';
 
 const nodeTypes = {
   if: IfNode,
@@ -53,6 +54,9 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
   const [nodes, setNodes, onNodesChange] = useNodesState(flow.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flow.edges);
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // Load tags and fields from the data source
+  const { tags, fields } = useTagsFields(flow.dataSourceId);
 
   useEffect(() => {
     setHasChanges(true);
@@ -175,18 +179,8 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
             data: {
               ...node.data,
               globalVariables: flow.globalVariables,
-              tags: [ // Mock tags data for testing
-                { id: '1', name: 'temperature', value: 23.5, type: 'number' },
-                { id: '2', name: 'humidity', value: 65.2, type: 'number' },
-                { id: '3', name: 'status', value: 'active', type: 'string' },
-                { id: '4', name: 'device_name', value: 'Sensor01', type: 'string' },
-              ],
-              fields: [ // Mock fields data for testing
-                { id: '1', name: 'device_id', value: 'SENSOR_001', type: 'string' },
-                { id: '2', name: 'max_temp', value: 35, type: 'number' },
-                { id: '3', name: 'location', value: 'Room A', type: 'string' },
-                { id: '4', name: 'threshold', value: 50, type: 'number' },
-              ],
+              tags: tags, // Dynamic tags from data source
+              fields: fields, // Dynamic fields from data source
             }
           }))}
           edges={edges}

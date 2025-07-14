@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, Database, Tag as TagIcon, AlertTriangle } from 'lucide-react';
 import { Tag, Field } from '@/types/flow';
 import { useToast } from '@/hooks/use-toast';
+import { useTagsFields } from '@/hooks/useTagsFields';
 import {
   Dialog,
   DialogContent,
@@ -21,53 +22,12 @@ interface TagsFieldsPanelProps {
 
 export function TagsFieldsPanel({ dataSourceId, onDataSourceChange }: TagsFieldsPanelProps) {
   const { toast } = useToast();
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [fields, setFields] = useState<Field[]>([]);
-  const [loading, setLoading] = useState(false);
   const [showChangeDialog, setShowChangeDialog] = useState(false);
   const [pendingSourceId, setPendingSourceId] = useState<string>('');
+  
+  // Use the shared hook for tags and fields
+  const { tags, fields, loading, refetch } = useTagsFields(dataSourceId);
 
-  useEffect(() => {
-    if (dataSourceId) {
-      loadTagsAndFields();
-    }
-  }, [dataSourceId]);
-
-  const loadTagsAndFields = async () => {
-    setLoading(true);
-    try {
-      // Mock API call - replace with actual implementation
-      // const response = await fetch(`/api/tags-fields?sourceId=${dataSourceId}`);
-      // const data = await response.json();
-      
-      // Mock data for demonstration
-      const mockTags: Tag[] = [
-        { id: '1', name: 'temperature', value: 23.5, type: 'number' },
-        { id: '2', name: 'humidity', value: 65.2, type: 'number' },
-        { id: '3', name: 'status', value: 'active', type: 'string' },
-        { id: '4', name: 'alerts', value: ['warning', 'info'], type: 'object' },
-      ];
-      
-      const mockFields: Field[] = [
-        { id: '1', name: 'device_id', value: 'SENSOR_001', type: 'string' },
-        { id: '2', name: 'location', value: 'Building A - Floor 1', type: 'string' },
-        { id: '3', name: 'max_temp', value: 35, type: 'number' },
-        { id: '4', name: 'calibration_date', value: '2024-01-15', type: 'string' },
-      ];
-      
-      setTags(mockTags);
-      setFields(mockFields);
-    } catch (error) {
-      console.error('Failed to load tags and fields:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load tags and fields'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDataSourceChange = (sourceId: string) => {
     setPendingSourceId(sourceId);
@@ -114,7 +74,7 @@ export function TagsFieldsPanel({ dataSourceId, onDataSourceChange }: TagsFields
             <Button
               size="sm"
               variant="ghost"
-              onClick={loadTagsAndFields}
+              onClick={refetch}
               disabled={loading}
               className="h-6 w-6 p-0"
             >
