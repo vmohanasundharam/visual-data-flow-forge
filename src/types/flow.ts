@@ -51,7 +51,7 @@ export interface Condition {
 
 export interface FlowNode {
   id: string;
-  type: 'if' | 'javascript' | 'start' | 'end';
+  type: 'if' | 'javascript' | 'start' | 'end' | 'cache';
   position: { x: number; y: number };
   data: {
     label: string;
@@ -112,4 +112,19 @@ export interface JavaScriptBlockConfig {
     returnKey: string;
     targetVariable: string;
   }[];
+}
+
+export interface CacheBlockConfig {
+  operation: 'get' | 'add' | 'update' | 'delete';
+  key: {
+    sourceType: 'field' | 'tag' | 'variable' | 'custom';
+    source?: string; // ID when not custom
+    customValue?: string; // When sourceType is custom
+  };
+  value?: {
+    sourceType: 'field' | 'tag' | 'variable' | 'custom';
+    source?: string; // ID when not custom
+    customValue?: string; // When sourceType is custom
+  };
+  resultVariable?: string; // For get operation
 }

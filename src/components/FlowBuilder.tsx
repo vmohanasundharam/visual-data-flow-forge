@@ -22,6 +22,7 @@ import { IfNode } from '@/components/nodes/IfNode';
 import { JavaScriptNode } from '@/components/nodes/JavaScriptNode';
 import { StartNode } from '@/components/nodes/StartNode';
 import { EndNode } from '@/components/nodes/EndNode';
+import { CacheNode } from '@/components/nodes/CacheNode';
 import { useToast } from '@/hooks/use-toast';
 import { useTagsFields } from '@/hooks/useTagsFields';
 import { useJSFunctions } from '@/hooks/useJSFunctions';
@@ -31,6 +32,7 @@ const nodeTypes = {
   javascript: JavaScriptNode,
   start: StartNode,
   end: EndNode,
+  cache: CacheNode,
 };
 
 const edgeOptions = {
@@ -93,13 +95,23 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
     });
   };
 
-  const addNode = (type: 'if' | 'javascript' | 'end') => {
+  const addNode = (type: 'if' | 'javascript' | 'end' | 'cache') => {
+    const getNodeLabel = () => {
+      switch (type) {
+        case 'if': return 'If Condition';
+        case 'javascript': return 'JavaScript';
+        case 'cache': return 'Cache';
+        case 'end': return 'End';
+        default: return type;
+      }
+    };
+
     const newNode: FlowNode = {
       id: `${type}-${Date.now()}`,
       type,
       position: { x: Math.random() * 400 + 200, y: Math.random() * 400 + 200 },
       data: {
-        label: type === 'if' ? 'If Condition' : type === 'javascript' ? 'JavaScript' : 'End',
+        label: getNodeLabel(),
         config: {},
       },
     };
@@ -172,6 +184,15 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
           >
             <Plus className="w-3 h-3 mr-1" />
             JavaScript
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => addNode('cache')}
+            className="hover:border-flow-warning"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Cache
           </Button>
           <Button
             size="sm"
