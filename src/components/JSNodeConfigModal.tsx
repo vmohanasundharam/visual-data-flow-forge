@@ -194,7 +194,7 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                             </div>
                           ) : (
                             filteredSources.map((source: any) => (
-                              <SelectItem key={source.id} value={source.name}>
+                              <SelectItem key={source.id} value={source.id}>
                                 {source.name} ({source.type})
                               </SelectItem>
                             ))
@@ -225,7 +225,7 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                           </div>
                         ) : (
                           getReturnVariableOptions().map((variable) => (
-                            <SelectItem key={variable.id} value={variable.name}>
+                            <SelectItem key={variable.id} value={variable.id}>
                               {variable.name} ({variable.type})
                             </SelectItem>
                           ))

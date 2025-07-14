@@ -18,30 +18,45 @@ export function useTagsFields(dataSourceId?: string) {
     setLoading(true);
     try {
       // Mock API call - replace with actual implementation
-      // const response = await fetch(`/api/tags-fields?sourceId=${dataSourceId}`);
+      // const response = await fetch(`/api/data-sources`);
       // const data = await response.json();
       
-      // Mock data for demonstration - this will be dynamic based on dataSourceId
-      const mockTags: Tag[] = [
-        { id: '1', name: 'temperature', value: 23.5, type: 'number' },
-        { id: '2', name: 'humidity', value: 65.2, type: 'number' },
-        { id: '3', name: 'status', value: 'active', type: 'string' },
-        { id: '4', name: 'device_name', value: 'Sensor01', type: 'string' },
-        { id: '5', name: 'pressure', value: 1013.25, type: 'number' },
-        { id: '6', name: 'location_tag', value: 'Room-A', type: 'string' },
-      ];
+      // Mock data matching server format
+      const mockServerResponse = {
+        "data_sources": [
+          {
+            "id": "1234",
+            "name": "Device1",
+            "tags": [
+              { "id": "1234", "name": "device_name", "type": "string" as const, "value": "Aaaa" },
+              { "id": "1235", "name": "temperature", "type": "number" as const, "value": 23.5 },
+              { "id": "1236", "name": "humidity", "type": "number" as const, "value": 65.2 },
+              { "id": "1237", "name": "status", "type": "string" as const, "value": "active" },
+              { "id": "1238", "name": "pressure", "type": "number" as const, "value": 1013.25 },
+              { "id": "1239", "name": "location_tag", "type": "string" as const, "value": "Room-A" }
+            ],
+            "fields": [
+              { "id": "1234", "name": "current_shift", "type": "string" as const, "value": "Shift 1" },
+              { "id": "1235", "name": "device_id", "type": "string" as const, "value": "SENSOR_001" },
+              { "id": "1236", "name": "location", "type": "string" as const, "value": "Building A - Floor 1" },
+              { "id": "1237", "name": "max_temp", "type": "number" as const, "value": 35 },
+              { "id": "1238", "name": "threshold", "type": "number" as const, "value": 50 },
+              { "id": "1239", "name": "maintenance_interval", "type": "number" as const, "value": 30 }
+            ]
+          }
+        ]
+      };
       
-      const mockFields: Field[] = [
-        { id: '1', name: 'device_id', value: 'SENSOR_001', type: 'string' },
-        { id: '2', name: 'location', value: 'Building A - Floor 1', type: 'string' },
-        { id: '3', name: 'max_temp', value: 35, type: 'number' },
-        { id: '4', name: 'threshold', value: 50, type: 'number' },
-        { id: '5', name: 'calibration_date', value: '2024-01-15', type: 'string' },
-        { id: '6', name: 'maintenance_interval', value: 30, type: 'number' },
-      ];
+      // Find the data source by ID
+      const dataSource = mockServerResponse.data_sources.find(ds => ds.id === dataSourceId);
       
-      setTags(mockTags);
-      setFields(mockFields);
+      if (dataSource) {
+        setTags(dataSource.tags);
+        setFields(dataSource.fields);
+      } else {
+        setTags([]);
+        setFields([]);
+      }
     } catch (error) {
       console.error('Failed to load tags and fields:', error);
       toast({

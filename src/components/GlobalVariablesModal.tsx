@@ -68,8 +68,11 @@ export function GlobalVariablesModal({ isOpen, onClose, variables, onSave }: Glo
       return;
     }
 
+    // Generate sequential ID starting from 1
+    const nextId = Math.max(0, ...localVariables.map(v => parseInt(v.id) || 0)) + 1;
+
     const variable: GlobalVariable = {
-      id: Date.now().toString(),
+      id: nextId.toString(),
       name: newVariable.name,
       value: parseValue(newVariable.value, newVariable.type),
       type: newVariable.type

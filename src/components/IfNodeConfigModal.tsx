@@ -67,7 +67,7 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
 
   const getSelectedSourceType = (condition: Condition) => {
     const sources = getSourceOptions(condition.sourceType);
-    const selectedSource = sources.find(s => s.name === condition.source);
+    const selectedSource = sources.find(s => s.id === condition.source);
     return selectedSource?.type || 'string';
   };
 
@@ -159,7 +159,7 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                         </div>
                       ) : (
                         getSourceOptions(condition.sourceType).map(option => (
-                          <SelectItem key={option.id} value={option.name}>
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name} ({option.type})
                           </SelectItem>
                         ))
