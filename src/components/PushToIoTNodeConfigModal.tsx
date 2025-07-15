@@ -17,7 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Trash2, Plus } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { PushToIoTBlockConfig, Tag, Field, GlobalVariable } from '@/types/flow';
 
 interface PushToIoTNodeConfigModalProps {
@@ -113,87 +114,88 @@ export function PushToIoTNodeConfigModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label className="text-base font-medium">Data Mappings</Label>
-            <Button onClick={addMapping} size="sm" variant="outline">
+        <div className="space-y-6">
+          <div>
+            <Label className="text-sm font-medium mb-3 block">Data Mappings</Label>
+            {config.mappings.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No mappings configured</p>
+                <p className="text-sm">Add a mapping to get started</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {config.mappings.map((mapping, index) => (
+                  <div key={mapping.id} className="flex items-center gap-2 p-3 border rounded-lg">
+                    <Badge variant="outline" className="min-w-8">{index + 1}</Badge>
+                    
+                    <Select
+                      value={mapping.sourceType}
+                      onValueChange={(value: 'field' | 'tag' | 'variable') => 
+                        updateMapping(mapping.id, { sourceType: value, sourceId: '' })
+                      }
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border z-50">
+                        <SelectItem value="field">Field</SelectItem>
+                        <SelectItem value="tag">Tag</SelectItem>
+                        <SelectItem value="variable">Variable</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={mapping.sourceId}
+                      onValueChange={(value) => updateMapping(mapping.id, { sourceId: value })}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select source" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border z-50">
+                        {getSourceOptions(mapping.sourceType).length === 0 ? (
+                          <div className="px-2 py-1 text-sm text-muted-foreground">
+                            No {mapping.sourceType}s available
+                          </div>
+                        ) : (
+                          getSourceOptions(mapping.sourceType).map(option => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+
+                    <Input
+                      value={mapping.keyName}
+                      onChange={(e) => updateMapping(mapping.id, { keyName: e.target.value })}
+                      placeholder="Key name"
+                      className="flex-1"
+                    />
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeMapping(mapping.id)}
+                      className="text-destructive hover:bg-destructive/10"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addMapping}
+              className="mt-3"
+            >
               <Plus className="w-4 h-4 mr-1" />
               Add Mapping
             </Button>
           </div>
-
-          {config.mappings.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No mappings configured. Click "Add Mapping" to start.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {config.mappings.map((mapping) => (
-                <div key={mapping.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">Mapping</Label>
-                    <Button
-                      onClick={() => removeMapping(mapping.id)}
-                      size="sm"
-                      variant="outline"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-2">
-                      <Label>Source Type</Label>
-                      <Select
-                        value={mapping.sourceType}
-                        onValueChange={(sourceType: 'field' | 'tag' | 'variable') =>
-                          updateMapping(mapping.id, { sourceType, sourceId: '' })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="field">Field</SelectItem>
-                          <SelectItem value="tag">Tag</SelectItem>
-                          <SelectItem value="variable">Global Variable</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Source</Label>
-                      <Select
-                        value={mapping.sourceId}
-                        onValueChange={(sourceId) => updateMapping(mapping.id, { sourceId })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={`Select ${mapping.sourceType}`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSourceOptions(mapping.sourceType).map((option) => (
-                            <SelectItem key={option.id} value={option.id}>
-                              {option.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Key Name</Label>
-                      <Input
-                        placeholder="Enter key name"
-                        value={mapping.keyName}
-                        onChange={(e) => updateMapping(mapping.id, { keyName: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         <DialogFooter>
