@@ -298,7 +298,7 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
       />
 
       <CacheNodeConfigModal
-        open={configModal.type === 'cache'}
+        isOpen={configModal.type === 'cache'}
         initialConfig={configModal.nodeId ? nodes.find(n => n.id === configModal.nodeId)?.data?.config : undefined}
         onSave={(config) => {
           handleUpdateNode(configModal.nodeId!, { config });
