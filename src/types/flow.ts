@@ -51,11 +51,12 @@ export interface Condition {
 
 export interface FlowNode {
   id: string;
-  type: 'if' | 'javascript' | 'start' | 'end' | 'cache';
+  type: 'if' | 'javascript' | 'start' | 'end' | 'cache' | 'pushToIoT';
   position: { x: number; y: number };
   data: {
     label: string;
     config?: any;
+    onConfig?: () => void;
   };
 }
 
@@ -127,4 +128,13 @@ export interface CacheBlockConfig {
     customValue?: string; // When sourceType is custom
   };
   resultVariable?: string; // For get operation
+}
+
+export interface PushToIoTBlockConfig {
+  mappings: {
+    id: string;
+    sourceType: 'field' | 'tag' | 'variable';
+    sourceId: string;
+    keyName: string;
+  }[];
 }

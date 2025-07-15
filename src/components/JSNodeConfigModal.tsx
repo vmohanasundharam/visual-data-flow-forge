@@ -249,3 +249,5 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
     </Dialog>
   );
 }
+
+export default JSNodeConfigModal;

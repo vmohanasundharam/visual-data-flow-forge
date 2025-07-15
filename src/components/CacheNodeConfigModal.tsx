@@ -223,3 +223,5 @@ export function CacheNodeConfigModal({
     </Dialog>
   );
 }
+
+export default CacheNodeConfigModal;

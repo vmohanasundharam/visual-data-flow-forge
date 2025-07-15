@@ -235,3 +235,5 @@ export function IfNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
     </Dialog>
   );
 }
+
+export default IfNodeConfigModal;

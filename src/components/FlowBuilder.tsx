@@ -23,9 +23,14 @@ import { JavaScriptNode } from '@/components/nodes/JavaScriptNode';
 import { StartNode } from '@/components/nodes/StartNode';
 import { EndNode } from '@/components/nodes/EndNode';
 import { CacheNode } from '@/components/nodes/CacheNode';
+import PushToIoTNode from '@/components/nodes/PushToIoTNode';
 import { useToast } from '@/hooks/use-toast';
 import { useTagsFields } from '@/hooks/useTagsFields';
 import { useJSFunctions } from '@/hooks/useJSFunctions';
+import IfNodeConfigModal from '@/components/IfNodeConfigModal';
+import JSNodeConfigModal from '@/components/JSNodeConfigModal';
+import CacheNodeConfigModal from '@/components/CacheNodeConfigModal';
+import { PushToIoTNodeConfigModal } from '@/components/PushToIoTNodeConfigModal';
 
 const nodeTypes = {
   if: IfNode,
@@ -33,6 +38,7 @@ const nodeTypes = {
   start: StartNode,
   end: EndNode,
   cache: CacheNode,
+  pushToIoT: PushToIoTNode,
 };
 
 const edgeOptions = {
@@ -57,6 +63,10 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
   const [nodes, setNodes, onNodesChange] = useNodesState(flow.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flow.edges);
   const [hasChanges, setHasChanges] = useState(false);
+  const [configModal, setConfigModal] = useState<{
+    type: 'if' | 'javascript' | 'cache' | 'pushToIoT' | null;
+    nodeId: string | null;
+  }>({ type: null, nodeId: null });
   
   // Load tags and fields from the data source
   const { tags, fields } = useTagsFields(flow.dataSourceId);
@@ -95,12 +105,13 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
     });
   };
 
-  const addNode = (type: 'if' | 'javascript' | 'end' | 'cache') => {
+  const addNode = (type: 'if' | 'javascript' | 'end' | 'cache' | 'pushToIoT') => {
     const getNodeLabel = () => {
       switch (type) {
         case 'if': return 'If Condition';
         case 'javascript': return 'JavaScript';
         case 'cache': return 'Cache';
+        case 'pushToIoT': return 'Push To IoT';
         case 'end': return 'End';
         default: return type;
       }
@@ -113,6 +124,7 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
       data: {
         label: getNodeLabel(),
         config: {},
+        onConfig: () => setConfigModal({ type: type as 'if' | 'javascript' | 'cache' | 'pushToIoT', nodeId: newNode.id }),
       },
     };
     setNodes((nds) => [...nds, newNode]);
@@ -197,6 +209,15 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
           <Button
             size="sm"
             variant="outline"
+            onClick={() => addNode('pushToIoT')}
+            className="hover:border-flow-secondary"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Push To IoT
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => addNode('end')}
             className="hover:border-flow-warning"
           >
@@ -247,6 +268,60 @@ export function FlowBuilder({ flow, onSave, onClose, onOpenVariables, onOpenFunc
           />
         </ReactFlow>
       </div>
+
+      {/* Configuration Modals */}
+      <IfNodeConfigModal
+        open={configModal.type === 'if'}
+        initialConfig={configModal.nodeId ? nodes.find(n => n.id === configModal.nodeId)?.data?.config : undefined}
+        onSave={(config) => {
+          handleUpdateNode(configModal.nodeId!, { config });
+          setConfigModal({ type: null, nodeId: null });
+        }}
+        onClose={() => setConfigModal({ type: null, nodeId: null })}
+        variables={flow.globalVariables}
+        tags={tags}
+        fields={fields}
+      />
+
+      <JSNodeConfigModal
+        open={configModal.type === 'javascript'}
+        initialConfig={configModal.nodeId ? nodes.find(n => n.id === configModal.nodeId)?.data?.config : undefined}
+        onSave={(config) => {
+          handleUpdateNode(configModal.nodeId!, { config });
+          setConfigModal({ type: null, nodeId: null });
+        }}
+        onClose={() => setConfigModal({ type: null, nodeId: null })}
+        variables={flow.globalVariables}
+        tags={tags}
+        fields={fields}
+        functions={functions}
+      />
+
+      <CacheNodeConfigModal
+        open={configModal.type === 'cache'}
+        initialConfig={configModal.nodeId ? nodes.find(n => n.id === configModal.nodeId)?.data?.config : undefined}
+        onSave={(config) => {
+          handleUpdateNode(configModal.nodeId!, { config });
+          setConfigModal({ type: null, nodeId: null });
+        }}
+        onClose={() => setConfigModal({ type: null, nodeId: null })}
+        globalVariables={flow.globalVariables}
+        tags={tags}
+        fields={fields}
+      />
+
+      <PushToIoTNodeConfigModal
+        open={configModal.type === 'pushToIoT'}
+        initialConfig={configModal.nodeId ? nodes.find(n => n.id === configModal.nodeId)?.data?.config : undefined}
+        onSave={(config) => {
+          handleUpdateNode(configModal.nodeId!, { config });
+          setConfigModal({ type: null, nodeId: null });
+        }}
+        onClose={() => setConfigModal({ type: null, nodeId: null })}
+        globalVariables={flow.globalVariables}
+        tags={tags}
+        fields={fields}
+      />
     </div>
   );
 }
