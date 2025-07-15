@@ -9,6 +9,9 @@ import { JSFunctionsModal } from '@/components/JSFunctionsModal';
 import { TagsFieldsPanel } from '@/components/TagsFieldsPanel';
 import { useToast } from '@/hooks/use-toast';
 import { Flow, DataSource } from '@/types/flow';
+import { config } from '@/config';
+import { pipelineApi, dataSourceApi } from '@/services/api';
+import { mockDataSources } from '@/data/mockData';
 
 const Index = () => {
   const { toast } = useToast();
@@ -28,16 +31,16 @@ const Index = () => {
 
   const loadDataSources = async () => {
     try {
-      // Use comprehensive mock data for testing
-      const mockDataSources: DataSource[] = [
-        { id: 'ds001', name: 'Temperature Monitoring System', description: 'Industrial temperature sensors across factory floor' },
-        { id: 'ds002', name: 'Pressure Monitoring Network', description: 'Hydraulic pressure sensors for industrial equipment' },
-        { id: 'ds003', name: 'Flow Rate Sensors', description: 'Water and chemical flow measurement systems' },
-        { id: 'ds004', name: 'Environmental Sensors', description: 'Air quality and environmental monitoring system' },
-        { id: 'ds005', name: 'Power Consumption Monitors', description: 'Electrical power usage and energy monitoring' }
-      ];
-      setDataSources(mockDataSources);
+      if (config.useApi) {
+        // Use real API
+        const dataSources = await dataSourceApi.getAll();
+        setDataSources(dataSources);
+      } else {
+        // Use mock data
+        setDataSources(mockDataSources.data_sources);
+      }
     } catch (error) {
+      console.error('Failed to load data sources:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -46,22 +49,43 @@ const Index = () => {
     }
   };
 
-  const loadFlows = () => {
-    // Load flows from localStorage or API
-    const savedFlows = localStorage.getItem('pipeline_flows');
-    if (savedFlows) {
-      const parsedFlows = JSON.parse(savedFlows).map((flow: any) => ({
-        ...flow,
-        createdAt: new Date(flow.createdAt),
-        updatedAt: new Date(flow.updatedAt)
-      }));
-      setFlows(parsedFlows);
+  const loadFlows = async () => {
+    try {
+      if (config.useApi) {
+        // Use real API
+        const flows = await pipelineApi.getAll();
+        setFlows(flows);
+      } else {
+        // Use localStorage
+        const savedFlows = localStorage.getItem('pipeline_flows');
+        if (savedFlows) {
+          const parsedFlows = JSON.parse(savedFlows).map((flow: any) => ({
+            ...flow,
+            createdAt: new Date(flow.createdAt),
+            updatedAt: new Date(flow.updatedAt)
+          }));
+          setFlows(parsedFlows);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load flows:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load flows'
+      });
     }
   };
 
-  const saveFlows = (updatedFlows: Flow[]) => {
-    localStorage.setItem('pipeline_flows', JSON.stringify(updatedFlows));
-    setFlows(updatedFlows);
+  const saveFlows = async (updatedFlows: Flow[]) => {
+    if (config.useApi) {
+      // When using API, flows are saved individually via handleSaveFlow
+      setFlows(updatedFlows);
+    } else {
+      // Use localStorage
+      localStorage.setItem('pipeline_flows', JSON.stringify(updatedFlows));
+      setFlows(updatedFlows);
+    }
   };
 
   const handleCreateFlow = () => {

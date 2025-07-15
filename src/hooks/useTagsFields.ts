@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Tag, Field } from '@/types/flow';
 import { useToast } from '@/hooks/use-toast';
 import { mockDataSources } from '@/data/mockData';
+import { config } from '@/config';
+import { dataSourceApi } from '@/services/api';
 
 export function useTagsFields(dataSourceId?: string) {
   const { toast } = useToast();
@@ -18,19 +20,22 @@ export function useTagsFields(dataSourceId?: string) {
 
     setLoading(true);
     try {
-      // Mock API call - replace with actual implementation
-      // const response = await fetch(`/api/data-sources`);
-      // const data = await response.json();
-      
-      // Find the data source by ID using mock data
-      const dataSource = mockDataSources.data_sources.find(ds => ds.id === dataSourceId);
-      
-      if (dataSource) {
+      if (config.useApi) {
+        // Use real API
+        const dataSource = await dataSourceApi.get(dataSourceId);
         setTags(dataSource.tags);
         setFields(dataSource.fields);
       } else {
-        setTags([]);
-        setFields([]);
+        // Use mock data
+        const dataSource = mockDataSources.data_sources.find(ds => ds.id === dataSourceId);
+        
+        if (dataSource) {
+          setTags(dataSource.tags);
+          setFields(dataSource.fields);
+        } else {
+          setTags([]);
+          setFields([]);
+        }
       }
     } catch (error) {
       console.error('Failed to load tags and fields:', error);

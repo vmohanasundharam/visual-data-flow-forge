@@ -1,22 +1,30 @@
 import { useState, useEffect } from 'react';
 import { JSFunction } from '@/types/flow';
 import { mockJSFunctions } from '@/data/mockData';
+import { config } from '@/config';
+import { jsFunctionApi } from '@/services/api';
 
 export function useJSFunctions() {
   const [functions, setFunctions] = useState<JSFunction[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const loadFunctions = () => {
+  const loadFunctions = async () => {
     setLoading(true);
     try {
-      // Load from localStorage (same as JSFunctionsModal)
-      const saved = localStorage.getItem('js_functions');
-      if (saved) {
-        setFunctions(JSON.parse(saved));
+      if (config.useApi) {
+        // Use real API
+        const functions = await jsFunctionApi.getAll();
+        setFunctions(functions);
       } else {
-        // Initialize with mock data if no saved functions
-        localStorage.setItem('js_functions', JSON.stringify(mockJSFunctions));
-        setFunctions(mockJSFunctions);
+        // Use localStorage and mock data
+        const saved = localStorage.getItem('js_functions');
+        if (saved) {
+          setFunctions(JSON.parse(saved));
+        } else {
+          // Initialize with mock data if no saved functions
+          localStorage.setItem('js_functions', JSON.stringify(mockJSFunctions));
+          setFunctions(mockJSFunctions);
+        }
       }
     } catch (error) {
       console.error('Failed to load JS functions:', error);

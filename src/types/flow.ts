@@ -4,6 +4,8 @@ export interface DataSource {
   id: string;
   name: string;
   description?: string;
+  tags: Tag[];
+  fields: Field[];
 }
 
 export interface Tag {
