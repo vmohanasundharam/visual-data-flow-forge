@@ -249,28 +249,84 @@ export function JSFunctionsModal({ isOpen, onClose }: JSFunctionsModalProps) {
     setIsGenerating(true);
     
     try {
-      const response = await fetch('/api/js-generator', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: aiPrompt }),
+      // Mock AI API response for development
+      const mockResponse = await new Promise<any>((resolve) => {
+        setTimeout(() => {
+          const prompt = aiPrompt.toLowerCase();
+          
+          if (prompt.includes('sum') && prompt.includes('two')) {
+            resolve({
+              name: 'sumOfTwoNumbers',
+              description: 'Calculates the sum of two numbers',
+              code: `function sumOfTwoNumbers(a, b) {
+  // Validate inputs
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new Error('Both arguments must be numbers');
+  }
+  
+  // Calculate and return the sum
+  return a + b;
+}`,
+              arguments: [
+                { name: 'a', type: 'number' },
+                { name: 'b', type: 'number' }
+              ],
+              returnType: 'number'
+            });
+          } else if (prompt.includes('factorial')) {
+            resolve({
+              name: 'factorial',
+              description: 'Calculates the factorial of a non-negative integer',
+              code: `function factorial(n) {
+  // Validate input
+  if (typeof n !== 'number' || n < 0 || !Number.isInteger(n)) {
+    throw new Error('Input must be a non-negative integer');
+  }
+  
+  // Base cases
+  if (n === 0 || n === 1) {
+    return 1;
+  }
+  
+  // Calculate factorial iteratively for better performance
+  let result = 1;
+  for (let i = 2; i <= n; i++) {
+    result *= i;
+  }
+  
+  return result;
+}`,
+              arguments: [
+                { name: 'n', type: 'number' }
+              ],
+              returnType: 'number'
+            });
+          } else {
+            // Generic function for other prompts
+            resolve({
+              name: `generatedFunction_${Date.now()}`,
+              description: 'AI generated function based on your prompt',
+              code: `function generatedFunction() {
+  // Generated based on: ${aiPrompt}
+  // TODO: Implement your logic here
+  
+  return "Function generated successfully";
+}`,
+              arguments: [],
+              returnType: 'string'
+            });
+          }
+        }, 1500); // Simulate API delay
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate code');
-      }
-
-      const data = await response.json();
-      
       // Create a new function with the generated code
       const generatedFunction: JSFunction = {
         id: `ai_generated_${Date.now()}`,
-        name: data.name || `ai_function_${Date.now()}`,
-        description: data.description || 'AI generated function',
-        code: data.code,
-        arguments: data.arguments || [],
-        returnType: data.returnType || 'string'
+        name: mockResponse.name,
+        description: mockResponse.description,
+        code: mockResponse.code,
+        arguments: mockResponse.arguments || [],
+        returnType: mockResponse.returnType || 'string'
       };
 
       // Set it for editing

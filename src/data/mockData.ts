@@ -241,5 +241,52 @@ export const mockJSFunctions = [
   if (theoreticalMax <= 0) return 0;
   return Math.min(100, (actualOutput / theoreticalMax) * 100);
 }`
+  },
+  {
+    "id": "func008",
+    "name": "sumOfTwoNumbers",
+    "description": "Calculates the sum of two numbers",
+    "arguments": [
+      { "name": "a", "type": "number" as const },
+      { "name": "b", "type": "number" as const }
+    ],
+    "returnType": "number" as const,
+    "code": `function sumOfTwoNumbers(a, b) {
+  // Validate inputs
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new Error('Both arguments must be numbers');
+  }
+  
+  // Calculate and return the sum
+  return a + b;
+}`
+  },
+  {
+    "id": "func009",
+    "name": "factorial",
+    "description": "Calculates the factorial of a non-negative integer",
+    "arguments": [
+      { "name": "n", "type": "number" as const }
+    ],
+    "returnType": "number" as const,
+    "code": `function factorial(n) {
+  // Validate input
+  if (typeof n !== 'number' || n < 0 || !Number.isInteger(n)) {
+    throw new Error('Input must be a non-negative integer');
+  }
+  
+  // Base cases
+  if (n === 0 || n === 1) {
+    return 1;
+  }
+  
+  // Calculate factorial iteratively for better performance
+  let result = 1;
+  for (let i = 2; i <= n; i++) {
+    result *= i;
+  }
+  
+  return result;
+}`
   }
 ];
