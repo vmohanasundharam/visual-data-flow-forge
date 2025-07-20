@@ -304,7 +304,7 @@ export function CacheNodeConfigModal({
                             <SelectTrigger className="h-8">
                               <SelectValue placeholder="Select variable to store result" />
                             </SelectTrigger>
-                            <SelectContent className="bg-background border border-border z-50">
+                        <SelectContent className="bg-popover border border-border shadow-md z-[100]">
                               {globalVariables.map((variable) => (
                                 <SelectItem key={variable.id} value={variable.id}>
                                   {variable.name}
