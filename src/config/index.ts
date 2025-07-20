@@ -3,5 +3,8 @@ export const config = {
   useApi: false,
   
   // API base URL - adjust as needed
-  apiBaseUrl: '/api'
+  apiBaseUrl: '/api',
+  
+  // Set to true to enable AI code generation feature for JS blocks
+  enableAICodeGeneration: true
 };

@@ -4,7 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sparkles, Code } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { Tag, Field, GlobalVariable, JSFunction } from '@/types/flow';
+import { config } from '@/config';
 
 interface ArgumentMapping {
   argumentName: string;
@@ -30,6 +35,10 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
     initialConfig?.argumentMappings || []
   );
   const [returnVariable, setReturnVariable] = useState(initialConfig?.returnVariable || '');
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState('functions');
+  const { toast } = useToast();
 
   // Use actual functions from the functions modal instead of mock data
   const availableFunctions = functions.map(func => ({
@@ -100,6 +109,66 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
     });
   };
 
+  const generateAICode = async () => {
+    if (!aiPrompt.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a prompt for code generation",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    try {
+      const response = await fetch('/api/js-generator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate code');
+      }
+
+      const data = await response.json();
+      
+      // Create a new function with the generated code
+      const generatedFunction: JSFunction = {
+        id: `ai_generated_${Date.now()}`,
+        name: `ai_generated_${Date.now()}`,
+        code: data.code,
+        arguments: data.arguments || [],
+        returnType: data.returnType || 'string'
+      };
+
+      // Add to available functions and select it
+      functions.push(generatedFunction);
+      handleFunctionSelect(generatedFunction.name);
+      
+      toast({
+        title: "Success",
+        description: "AI code generated successfully!",
+      });
+
+      setActiveTab('functions');
+      setAiPrompt('');
+      
+    } catch (error) {
+      console.error('Error generating AI code:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate code. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleSave = () => {
     onSave({
       functionName: selectedFunction,
@@ -112,12 +181,26 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configure JavaScript Block</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid grid-cols-2 w-full">
+            <TabsTrigger value="functions" className="flex items-center gap-2">
+              <Code className="w-4 h-4" />
+              Functions
+            </TabsTrigger>
+            {config.enableAICodeGeneration && (
+              <TabsTrigger value="ai" className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                AI Generate
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          <TabsContent value="functions" className="space-y-6">
           <div>
             <Label htmlFor="function-select">Select Function</Label>
             <Select value={selectedFunction} onValueChange={handleFunctionSelect}>
@@ -236,8 +319,54 @@ export function JSNodeConfigModal({ open, onClose, onSave, initialConfig, tags, 
                 </div>
               </div>
             </div>
+           )}
+          </TabsContent>
+
+          {config.enableAICodeGeneration && (
+            <TabsContent value="ai" className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="ai-prompt">Describe what you want the function to do</Label>
+                  <Textarea
+                    id="ai-prompt"
+                    placeholder="e.g., Create a function that calculates the distance between two coordinates..."
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    className="mt-1 min-h-[100px]"
+                  />
+                </div>
+                
+                <Button 
+                  onClick={generateAICode} 
+                  disabled={isGenerating || !aiPrompt.trim()}
+                  className="w-full"
+                >
+                  {isGenerating ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      Generating...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      Generate Code
+                    </div>
+                  )}
+                </Button>
+                
+                <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
+                  <p className="font-medium mb-1">How it works:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>Describe your function requirements in plain English</li>
+                    <li>AI will generate the function code and parameters</li>
+                    <li>The generated function will be added to your functions list</li>
+                    <li>Configure argument mapping in the Functions tab</li>
+                  </ul>
+                </div>
+              </div>
+            </TabsContent>
           )}
-        </div>
+        </Tabs>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
