@@ -236,7 +236,7 @@ export function CacheNodeConfigModal({
                 {/* Left Column - Key Configuration */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-foreground border-b border-flow-node-border pb-1">
-                    Key Configuration
+                    Source Selection
                   </h4>
                   {renderSourceSelector(
                     keyConfig.key,
@@ -249,7 +249,7 @@ export function CacheNodeConfigModal({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between border-b border-flow-node-border pb-1">
                     <h4 className="text-sm font-medium text-foreground">
-                      Operations
+                      Operations & Result Mapping
                     </h4>
                     <Button
                       size="sm"
@@ -264,11 +264,16 @@ export function CacheNodeConfigModal({
 
                   <div className="space-y-3">
                     {keyConfig.operations.map((operation, opIndex) => (
-                      <div key={opIndex} className="space-y-2 p-3 bg-muted/30 rounded border border-muted">
+                      <div key={opIndex} className="space-y-3 p-3 bg-muted/30 rounded border border-muted">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-muted-foreground">
-                            Operation {opIndex + 1}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded bg-flow-secondary text-secondary-foreground text-xs flex items-center justify-center font-medium">
+                              {opIndex + 1}
+                            </div>
+                            <span className="text-sm font-medium text-foreground">
+                              Operation {opIndex + 1}
+                            </span>
+                          </div>
                           {keyConfig.operations.length > 1 && (
                             <Button
                               size="sm"
@@ -282,8 +287,8 @@ export function CacheNodeConfigModal({
                         </div>
 
                         {/* Operation Type */}
-                        <div className="space-y-1">
-                          <Label className="text-xs">Operation</Label>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">Operation Type</Label>
                           <Select
                             value={operation.operation}
                             onValueChange={(op: 'get' | 'add' | 'update' | 'delete') =>
@@ -305,35 +310,41 @@ export function CacheNodeConfigModal({
                         {/* Value Configuration (for add/update operations) */}
                         {(operation.operation === 'add' || operation.operation === 'update') && (
                           <div>
+                            <Label className="text-xs font-medium mb-2 block">Value Source</Label>
                             {renderSourceSelector(
                               operation.value || { sourceType: 'field' },
                               (value) => updateOperation(keyIndex, opIndex, { ...operation, value }),
-                              'Value Source'
+                              'Value Selection'
                             )}
                           </div>
                         )}
 
                         {/* Result Variable (for get operation) */}
                         {operation.operation === 'get' && (
-                          <div className="space-y-1">
-                            <Label className="text-xs">Result Mapping</Label>
-                            <Select
-                              value={operation.resultVariable || ''}
-                              onValueChange={(resultVariable) => 
-                                updateOperation(keyIndex, opIndex, { ...operation, resultVariable })
-                              }
-                            >
-                              <SelectTrigger className="h-8">
-                                <SelectValue placeholder="Select variable" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-background border border-border z-50">
-                                {globalVariables.map((variable) => (
-                                  <SelectItem key={variable.id} value={variable.id}>
-                                    {variable.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium">Result Mapping</Label>
+                            <div className="p-2 bg-background/50 rounded border border-border/50">
+                              <Label className="text-xs text-muted-foreground mb-1 block">
+                                Store result in variable:
+                              </Label>
+                              <Select
+                                value={operation.resultVariable || ''}
+                                onValueChange={(resultVariable) => 
+                                  updateOperation(keyIndex, opIndex, { ...operation, resultVariable })
+                                }
+                              >
+                                <SelectTrigger className="h-8">
+                                  <SelectValue placeholder="Select variable to store result" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-background border border-border z-50">
+                                  {globalVariables.map((variable) => (
+                                    <SelectItem key={variable.id} value={variable.id}>
+                                      {variable.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         )}
                       </div>
