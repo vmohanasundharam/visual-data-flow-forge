@@ -17,7 +17,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Trash2, Plus } from 'lucide-react';
 import { GlobalVariable, Tag, Field, CacheBlockConfig } from '@/types/flow';
+
+interface CacheOperation {
+  operation: 'get' | 'add' | 'update' | 'delete';
+  value?: {
+    sourceType: 'field' | 'tag' | 'variable' | 'custom';
+    source?: string;
+    customValue?: string;
+  };
+  resultVariable?: string;
+}
 
 interface CacheNodeConfigModalProps {
   isOpen: boolean;
@@ -38,29 +49,84 @@ export function CacheNodeConfigModal({
   tags,
   fields,
 }: CacheNodeConfigModalProps) {
-  const [config, setConfig] = useState<CacheBlockConfig>(() => {
-    const defaultConfig: CacheBlockConfig = {
-      operation: 'get',
-      key: {
-        sourceType: 'field',
-      },
+  const [keys, setKeys] = useState<Array<{
+    key: {
+      sourceType: 'field' | 'tag' | 'variable' | 'custom';
+      source?: string;
+      customValue?: string;
     };
-    
+    operations: CacheOperation[];
+  }>>(() => {
     if (initialConfig) {
-      return {
-        ...defaultConfig,
-        ...initialConfig,
-        key: initialConfig.key || defaultConfig.key,
-        value: initialConfig.value || undefined,
+      // Convert old format to new format
+      const operation: CacheOperation = {
+        operation: initialConfig.operation,
+        value: initialConfig.value,
+        resultVariable: initialConfig.resultVariable,
       };
+      
+      return [{
+        key: initialConfig.key || { sourceType: 'field' },
+        operations: [operation]
+      }];
     }
     
-    return defaultConfig;
+    return [{
+      key: { sourceType: 'field' },
+      operations: [{ operation: 'get' }]
+    }];
   });
 
   const handleSave = () => {
-    onSave(config);
+    // Convert back to original format for compatibility (use first key/operation)
+    const firstKey = keys[0];
+    const firstOperation = firstKey?.operations[0];
+    
+    if (firstKey && firstOperation) {
+      const config: CacheBlockConfig = {
+        operation: firstOperation.operation,
+        key: firstKey.key,
+        value: firstOperation.value,
+        resultVariable: firstOperation.resultVariable,
+      };
+      onSave(config);
+    }
     onClose();
+  };
+
+  const addKey = () => {
+    setKeys([...keys, {
+      key: { sourceType: 'field' },
+      operations: [{ operation: 'get' }]
+    }]);
+  };
+
+  const removeKey = (keyIndex: number) => {
+    setKeys(keys.filter((_, i) => i !== keyIndex));
+  };
+
+  const updateKey = (keyIndex: number, key: any) => {
+    const updatedKeys = [...keys];
+    updatedKeys[keyIndex].key = key;
+    setKeys(updatedKeys);
+  };
+
+  const addOperation = (keyIndex: number) => {
+    const updatedKeys = [...keys];
+    updatedKeys[keyIndex].operations.push({ operation: 'get' });
+    setKeys(updatedKeys);
+  };
+
+  const removeOperation = (keyIndex: number, opIndex: number) => {
+    const updatedKeys = [...keys];
+    updatedKeys[keyIndex].operations = updatedKeys[keyIndex].operations.filter((_, i) => i !== opIndex);
+    setKeys(updatedKeys);
+  };
+
+  const updateOperation = (keyIndex: number, opIndex: number, operation: CacheOperation) => {
+    const updatedKeys = [...keys];
+    updatedKeys[keyIndex].operations[opIndex] = operation;
+    setKeys(updatedKeys);
   };
 
   const renderSourceSelector = (
@@ -68,8 +134,8 @@ export function CacheNodeConfigModal({
     onChange: (newValue: { sourceType: 'field' | 'tag' | 'variable' | 'custom'; source?: string; customValue?: string }) => void,
     label: string
   ) => {
-    // Ensure value has a default if undefined
     const safeValue = value || { sourceType: 'field' as const };
+    
     const getSourceOptions = () => {
       switch (safeValue.sourceType) {
         case 'field':
@@ -85,137 +151,215 @@ export function CacheNodeConfigModal({
 
     return (
       <div className="space-y-2">
-        <Label>{label}</Label>
-        <div className="space-y-2">
+        <Label className="text-sm font-medium">{label}</Label>
+        <Select
+          value={safeValue.sourceType}
+          onValueChange={(sourceType: 'field' | 'tag' | 'variable' | 'custom') =>
+            onChange({ sourceType, source: undefined, customValue: undefined })
+          }
+        >
+          <SelectTrigger className="h-8">
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent className="bg-background border border-border z-50">
+            <SelectItem value="field">Field</SelectItem>
+            <SelectItem value="tag">Tag</SelectItem>
+            <SelectItem value="variable">Variable</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {safeValue.sourceType === 'custom' ? (
+          <Input
+            placeholder="Enter custom value"
+            value={safeValue.customValue || ''}
+            onChange={(e) => onChange({ ...safeValue, customValue: e.target.value })}
+            className="h-8"
+          />
+        ) : (
           <Select
-            value={safeValue.sourceType}
-            onValueChange={(sourceType: 'field' | 'tag' | 'variable' | 'custom') =>
-              onChange({ sourceType, source: undefined, customValue: undefined })
-            }
+            value={safeValue.source || ''}
+            onValueChange={(source) => onChange({ ...safeValue, source })}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select source type" />
+            <SelectTrigger className="h-8">
+              <SelectValue placeholder={`Select ${safeValue.sourceType}`} />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="field">Field</SelectItem>
-              <SelectItem value="tag">Tag</SelectItem>
-              <SelectItem value="variable">Variable</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
+            <SelectContent className="bg-background border border-border z-50">
+              {getSourceOptions().map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-
-          {safeValue.sourceType === 'custom' ? (
-            <Input
-              placeholder="Enter custom value"
-              value={safeValue.customValue || ''}
-              onChange={(e) => onChange({ ...safeValue, customValue: e.target.value })}
-            />
-          ) : (
-            <Select
-              value={safeValue.source || ''}
-              onValueChange={(source) => onChange({ ...safeValue, source })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={`Select ${safeValue.sourceType}`} />
-              </SelectTrigger>
-              <SelectContent>
-                {getSourceOptions().map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
+        )}
       </div>
     );
   };
 
-  const needsValue = config.operation === 'add' || config.operation === 'update';
-  const needsResult = config.operation === 'get';
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-card border-flow-node-border">
         <DialogHeader>
-          <DialogTitle>Configure Cache Block</DialogTitle>
+          <DialogTitle className="text-xl flex items-center gap-2">
+            Configure Cache Block
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Operation Selection */}
-          <div className="space-y-2">
-            <Label>Operation</Label>
-            <Select
-              value={config.operation}
-              onValueChange={(operation: 'get' | 'add' | 'update' | 'delete') =>
-                setConfig({ ...config, operation })
-              }
+          {keys.map((keyConfig, keyIndex) => (
+            <div 
+              key={keyIndex} 
+              className="border border-flow-node-border rounded-lg p-4 space-y-4"
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="get">Get</SelectItem>
-                <SelectItem value="add">Add</SelectItem>
-                <SelectItem value="update">Update</SelectItem>
-                <SelectItem value="delete">Delete</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator />
-
-          {/* Key Configuration */}
-          {renderSourceSelector(
-            config.key,
-            (key) => setConfig({ ...config, key }),
-            'Key'
-          )}
-
-          {/* Value Configuration (for add/update operations) */}
-          {needsValue && (
-            <>
-              <Separator />
-              {renderSourceSelector(
-                config.value || { sourceType: 'field' },
-                (value) => setConfig({ ...config, value }),
-                'Value'
-              )}
-            </>
-          )}
-
-          {/* Result Variable (for get operation) */}
-          {needsResult && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <Label>Result Variable</Label>
-                <Select
-                  value={config.resultVariable || ''}
-                  onValueChange={(resultVariable) => setConfig({ ...config, resultVariable })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select variable to store result" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {globalVariables.map((variable) => (
-                      <SelectItem key={variable.id} value={variable.id}>
-                        {variable.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Header with key number and remove button */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-flow-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
+                    {keyIndex + 1}
+                  </div>
+                  <span className="text-sm font-medium">Cache Key</span>
+                </div>
+                {keys.length > 1 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeKey(keyIndex)}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                )}
               </div>
-            </>
-          )}
+
+              <div className="grid grid-cols-2 gap-6">
+                {/* Left Column - Key Configuration */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-foreground border-b border-flow-node-border pb-1">
+                    Key Configuration
+                  </h4>
+                  {renderSourceSelector(
+                    keyConfig.key,
+                    (key) => updateKey(keyIndex, key),
+                    'Key Source'
+                  )}
+                </div>
+
+                {/* Right Column - Operations */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-flow-node-border pb-1">
+                    <h4 className="text-sm font-medium text-foreground">
+                      Operations
+                    </h4>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => addOperation(keyIndex)}
+                      className="h-6 px-2 text-xs"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {keyConfig.operations.map((operation, opIndex) => (
+                      <div key={opIndex} className="space-y-2 p-3 bg-muted/30 rounded border border-muted">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-muted-foreground">
+                            Operation {opIndex + 1}
+                          </span>
+                          {keyConfig.operations.length > 1 && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeOperation(keyIndex, opIndex)}
+                              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Operation Type */}
+                        <div className="space-y-1">
+                          <Label className="text-xs">Operation</Label>
+                          <Select
+                            value={operation.operation}
+                            onValueChange={(op: 'get' | 'add' | 'update' | 'delete') =>
+                              updateOperation(keyIndex, opIndex, { ...operation, operation: op })
+                            }
+                          >
+                            <SelectTrigger className="h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background border border-border z-50">
+                              <SelectItem value="get">Get</SelectItem>
+                              <SelectItem value="add">Add</SelectItem>
+                              <SelectItem value="update">Update</SelectItem>
+                              <SelectItem value="delete">Delete</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Value Configuration (for add/update operations) */}
+                        {(operation.operation === 'add' || operation.operation === 'update') && (
+                          <div>
+                            {renderSourceSelector(
+                              operation.value || { sourceType: 'field' },
+                              (value) => updateOperation(keyIndex, opIndex, { ...operation, value }),
+                              'Value Source'
+                            )}
+                          </div>
+                        )}
+
+                        {/* Result Variable (for get operation) */}
+                        {operation.operation === 'get' && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">Result Mapping</Label>
+                            <Select
+                              value={operation.resultVariable || ''}
+                              onValueChange={(resultVariable) => 
+                                updateOperation(keyIndex, opIndex, { ...operation, resultVariable })
+                              }
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue placeholder="Select variable" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background border border-border z-50">
+                                {globalVariables.map((variable) => (
+                                  <SelectItem key={variable.id} value={variable.id}>
+                                    {variable.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Add Key Button */}
+          <Button
+            variant="outline"
+            onClick={addKey}
+            className="w-full border-dashed border-flow-node-border hover:border-flow-primary hover:bg-flow-primary/5"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Cache Key
+          </Button>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} className="bg-gradient-to-r from-flow-secondary to-flow-primary hover:opacity-90">
             Save Configuration
           </Button>
         </DialogFooter>
