@@ -27,6 +27,8 @@ import {
 import { Plus, Trash2, Edit2, Code, Save, X } from 'lucide-react';
 import { JSFunction } from '@/types/flow';
 import { useToast } from '@/hooks/use-toast';
+import { config } from '@/config';
+import { jsFunctionApi } from '@/services/api';
 
 interface JSFunctionsModalProps {
   isOpen: boolean;
@@ -45,17 +47,40 @@ export function JSFunctionsModal({ isOpen, onClose }: JSFunctionsModalProps) {
     }
   }, [isOpen]);
 
-  const loadFunctions = () => {
-    // Load from localStorage for demo - replace with actual API call
-    const saved = localStorage.getItem('js_functions');
-    if (saved) {
-      setFunctions(JSON.parse(saved));
+  const loadFunctions = async () => {
+    try {
+      if (config.useApi) {
+        // Use real API
+        console.log('Loading JS functions from API...');
+        const functions = await jsFunctionApi.getAll();
+        console.log('JS functions received:', functions);
+        setFunctions(functions);
+      } else {
+        // Load from localStorage for demo
+        const saved = localStorage.getItem('js_functions');
+        if (saved) {
+          setFunctions(JSON.parse(saved));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load JS functions:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load JS functions'
+      });
     }
   };
 
-  const saveFunctions = (updatedFunctions: JSFunction[]) => {
-    localStorage.setItem('js_functions', JSON.stringify(updatedFunctions));
-    setFunctions(updatedFunctions);
+  const saveFunctions = async (updatedFunctions: JSFunction[]) => {
+    if (config.useApi) {
+      // When using API, functions are saved individually via handleSaveFunction
+      setFunctions(updatedFunctions);
+    } else {
+      // Use localStorage
+      localStorage.setItem('js_functions', JSON.stringify(updatedFunctions));
+      setFunctions(updatedFunctions);
+    }
     
     // Dispatch custom event to notify other components
     window.dispatchEvent(new Event('js_functions_updated'));
@@ -79,7 +104,7 @@ export function JSFunctionsModal({ isOpen, onClose }: JSFunctionsModalProps) {
     setShowEditor(true);
   };
 
-  const handleSaveFunction = () => {
+  const handleSaveFunction = async () => {
     if (!editingFunction) return;
 
     if (!editingFunction.name.trim()) {
@@ -91,35 +116,88 @@ export function JSFunctionsModal({ isOpen, onClose }: JSFunctionsModalProps) {
       return;
     }
 
-    const isNew = !functions.find(f => f.id === editingFunction.id);
-    let updatedFunctions;
+    try {
+      if (config.useApi) {
+        // Use API
+        const isNew = !functions.find(f => f.id === editingFunction.id);
+        
+        if (isNew) {
+          await jsFunctionApi.create(editingFunction);
+        } else {
+          await jsFunctionApi.update(editingFunction.id, editingFunction);
+        }
+        
+        // Reload functions from API
+        await loadFunctions();
+        
+        toast({
+          title: 'Success',
+          description: `Function ${isNew ? 'created' : 'updated'} successfully`
+        });
+      } else {
+        // Use localStorage
+        const isNew = !functions.find(f => f.id === editingFunction.id);
+        let updatedFunctions;
 
-    if (isNew) {
-      updatedFunctions = [...functions, editingFunction];
-    } else {
-      updatedFunctions = functions.map(f => 
-        f.id === editingFunction.id ? editingFunction : f
-      );
+        if (isNew) {
+          updatedFunctions = [...functions, editingFunction];
+        } else {
+          updatedFunctions = functions.map(f => 
+            f.id === editingFunction.id ? editingFunction : f
+          );
+        }
+
+        saveFunctions(updatedFunctions);
+        
+        toast({
+          title: 'Success',
+          description: `Function ${isNew ? 'created' : 'updated'} successfully`
+        });
+      }
+      
+      setShowEditor(false);
+      setEditingFunction(null);
+    } catch (error) {
+      console.error('Failed to save function:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to save function'
+      });
     }
-
-    saveFunctions(updatedFunctions);
-    setShowEditor(false);
-    setEditingFunction(null);
-    
-    toast({
-      title: 'Success',
-      description: `Function ${isNew ? 'created' : 'updated'} successfully`
-    });
   };
 
-  const handleDeleteFunction = (id: string) => {
-    const updatedFunctions = functions.filter(f => f.id !== id);
-    saveFunctions(updatedFunctions);
-    
-    toast({
-      title: 'Success',
-      description: 'Function deleted successfully'
-    });
+  const handleDeleteFunction = async (id: string) => {
+    try {
+      if (config.useApi) {
+        // Use API
+        await jsFunctionApi.delete(id);
+        
+        // Reload functions from API
+        await loadFunctions();
+        
+        toast({
+          title: 'Success',
+          description: 'Function deleted successfully'
+        });
+      } else {
+        // Use localStorage
+        const updatedFunctions = functions.filter(f => f.id !== id);
+        saveFunctions(updatedFunctions);
+        
+        toast({
+          title: 'Success',
+          description: 'Function deleted successfully'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to delete function:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete function'
+      });
+    }
   };
 
   const addArgument = () => {
