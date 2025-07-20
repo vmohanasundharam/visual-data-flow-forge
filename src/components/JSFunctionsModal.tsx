@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, Edit2, Code, Save, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Code, Save, X, Sparkles } from 'lucide-react';
 import { JSFunction } from '@/types/flow';
 import { useToast } from '@/hooks/use-toast';
 import { config } from '@/config';
@@ -40,6 +40,9 @@ export function JSFunctionsModal({ isOpen, onClose }: JSFunctionsModalProps) {
   const [functions, setFunctions] = useState<JSFunction[]>([]);
   const [editingFunction, setEditingFunction] = useState<JSFunction | null>(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -233,6 +236,138 @@ export function JSFunctionsModal({ isOpen, onClose }: JSFunctionsModalProps) {
     });
   };
 
+  const generateAIFunction = async () => {
+    if (!aiPrompt.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a prompt for code generation",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    try {
+      const response = await fetch('/api/js-generator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: aiPrompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate code');
+      }
+
+      const data = await response.json();
+      
+      // Create a new function with the generated code
+      const generatedFunction: JSFunction = {
+        id: `ai_generated_${Date.now()}`,
+        name: data.name || `ai_function_${Date.now()}`,
+        description: data.description || 'AI generated function',
+        code: data.code,
+        arguments: data.arguments || [],
+        returnType: data.returnType || 'string'
+      };
+
+      // Set it for editing
+      setEditingFunction(generatedFunction);
+      setShowAIGenerator(false);
+      setShowEditor(true);
+      setAiPrompt('');
+      
+      toast({
+        title: "Success",
+        description: "AI code generated successfully! Review and save the function.",
+      });
+      
+    } catch (error) {
+      console.error('Error generating AI code:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate code. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  if (showAIGenerator) {
+    return (
+      <Dialog open={isOpen} onOpenChange={() => {
+        setShowAIGenerator(false);
+        setAiPrompt('');
+        onClose();
+      }}>
+        <DialogContent className="sm:max-w-[600px] bg-card border-flow-node-border">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-flow-secondary" />
+              AI Function Generator
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="ai-prompt">Describe what you want the function to do</Label>
+              <Textarea
+                id="ai-prompt"
+                placeholder="e.g., Create a function that calculates the distance between two coordinates..."
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                className="mt-1 min-h-[120px]"
+              />
+            </div>
+            
+            <Button 
+              onClick={generateAIFunction} 
+              disabled={isGenerating || !aiPrompt.trim()}
+              className="w-full"
+            >
+              {isGenerating ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Generating...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Generate Function
+                </div>
+              )}
+            </Button>
+            
+            <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg">
+              <p className="font-medium mb-2">How it works:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li>Describe your function requirements in plain English</li>
+                <li>AI will generate the function code, parameters, and documentation</li>
+                <li>You can review and edit the generated function before saving</li>
+                <li>The function will be available in your flow blocks</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-flow-node-border">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowAIGenerator(false);
+                  setAiPrompt('');
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   if (showEditor && editingFunction) {
     return (
       <Dialog open={isOpen} onOpenChange={() => {
@@ -398,10 +533,22 @@ export function JSFunctionsModal({ isOpen, onClose }: JSFunctionsModalProps) {
             <p className="text-sm text-muted-foreground">
               Create reusable JavaScript functions for your flows
             </p>
-            <Button onClick={handleCreateFunction}>
-              <Plus className="w-4 h-4 mr-2" />
-              New Function
-            </Button>
+            <div className="flex gap-2">
+              {config.enableAICodeGeneration && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAIGenerator(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  AI Generate
+                </Button>
+              )}
+              <Button onClick={handleCreateFunction}>
+                <Plus className="w-4 h-4 mr-2" />
+                New Function
+              </Button>
+            </div>
           </div>
 
           {/* Functions Table */}
