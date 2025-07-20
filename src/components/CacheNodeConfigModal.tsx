@@ -173,7 +173,7 @@ export function CacheNodeConfigModal({
             <SelectTrigger className="h-8">
               <SelectValue placeholder={`Select ${safeValue.sourceType}`} />
             </SelectTrigger>
-            <SelectContent className="bg-background border border-border z-50">
+            <SelectContent className="bg-popover border border-border shadow-md z-[100]">
               {getSourceOptions().map((option) => (
                 <SelectItem key={option.id} value={option.id}>
                   {option.name}
